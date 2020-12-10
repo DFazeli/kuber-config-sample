@@ -1,0 +1,19 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: frontend
+  labels:
+    type: webserver
+spec:
+  containers:
+   - name: nginx
+     image: nginx
+     command:
+       - env
+     env:
+       - name: david_var
+         valueFrom:
+           configMapKeyRef:
+                    name: test
+                    key: MY_APP_NAME
+
