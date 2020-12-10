@@ -1,0 +1,21 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: frontend
+  labels:
+    type: webserver
+spec:
+  containers:
+   - name: nginx
+     image: nginx
+     command:
+       - cat
+       - /etc/nginx/nginx.conf
+     volumeMounts:
+       - name: nginx-conf
+         mountPath: /etc/nginx
+         readOnly: True
+  volumes:
+     - name: nginx-conf
+       configMap:
+           name: nginx-config
