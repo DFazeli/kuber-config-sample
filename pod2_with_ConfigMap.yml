@@ -1,0 +1,15 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: frontend
+  labels:
+    type: webserver
+spec:
+  containers:
+   - name: nginx
+     image: nginx
+     command:
+       - env
+     envFrom:
+       - configMapRef:
+             name: test
