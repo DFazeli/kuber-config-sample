@@ -1,0 +1,96 @@
+Create Nginx config File: 
+vim ./nginx.conf
+
+user  nginx;
+worker_processes  1;
+error_log  /var/log/nginx/error.log warn;
+pid        /var/run/nginx.pid;
+
+events {
+    worker_connections  1024;
+}
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                        '$status $body_bytes_sent "$http_referer" '
+                        '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log  /var/log/nginx/access.log  main;
+
+    sendfile        on;
+    #tcp_nopush     on;
+
+    keepalive_timeout  65;
+
+    #gzip  on;
+
+    include /etc/nginx/conf.d/*.conf;
+}
+----------------------------------------------------------
+Create welcome nginx file:
+vim index.html
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to David kuber</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>Welcome to david kuber on the internet!</h1>
+</body>
+</html>
+------------------------------------------------------
+
+kubectl create configmap welcomnginx --from-file=./index.html
+kubectl create configmap confnginx --from-file=./nginx.conf
+
+---------------------------------
+vim deploy-nginx.yml
+
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  selector:
+    matchLabels:
+      app: nginx-pods
+  replicas: 3 
+  template: 
+    metadata:
+      labels:
+        app: nginx-pods
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          ports:
+          - containerPort: 80
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+            - name: welcom-nginx
+              mountPath: /usr/share/nginx/html/index.html
+              subPath: index.html
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: confnginx
+        - name: welcom-nginx
+          configMap:
+            name: welcomnginx
+
+------------------------------------------------------------            
+kubectl apply -f deploy-nginx.yml
